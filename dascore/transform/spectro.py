@@ -11,6 +11,7 @@ from dascore.constants import PatchType
 from dascore.core.attrs import PatchAttrs
 from dascore.core.coordmanager import get_coord_manager
 from dascore.core.coords import get_compatible_values, get_coord
+from dascore.units import seconds
 from dascore.utils.deprecate import deprecate
 from dascore.utils.misc import iterate
 from dascore.utils.patch import (
@@ -111,3 +112,71 @@ def spectrogram(patch: PatchType, dim: str = "time", **kwargs) -> PatchType:
     cm = get_coord_manager(out_coords, dims=tuple(new_dims))
     attrs = _get_new_attrs(patch, cm, dim)
     return patch.__class__(data=spec, attrs=attrs, coords=cm)
+
+
+@patch_function(required_dims=("time",), history="full")
+def spectra(
+    patch: PatchType,
+    kind: str = "PSD",
+    db: bool = False,
+) -> PatchType:
+    """
+    Get frequency spectra for each channel. This function requires the patch
+    to have dimensions 'time' and 'distance'
+
+    Parameters
+    ----------
+    patch : PatchType
+        DAScore patch with dimensions 'time' and 'distance'
+
+    kind : str, optional
+        Determined the kind of frequency spectrum. Options are
+        - 'AS'  = Amplitude Spectrum
+        - 'PS'  = Power Spectrum (== AS**2)
+        - 'PSD' = Power-Spectral Density (default)
+                  (== AS**2 / number_of_samples / sampling_rate)
+
+    db : bool, optional
+        Convert spectra to units of decibel:
+          - AS  = 20 * log10(|spectra|)
+          - PS  = 10 * log10(spectra**2)
+          - PSD = 10 * log10(spectra**2 / number_of_samples / sampling_rate)
+
+    Returns
+    -------
+    PatchType
+        Patch containing the a matrix of all time-spectra for each channel
+    """
+    spec = patch.dft(dim="time", real=True, pad=True)
+    fsamp = np.timedelta64(1, "s") / patch.coords.time.step
+
+    n = patch.coords.time.shape[0]
+
+    if kind.upper() == "AS":
+        if db:
+            out = 20 * np.log10(np.abs(spec))
+        out = out.update(attrs={"data_type": "Amplitude Spectrum"})
+
+    elif kind.upper() == "PS":
+        out = np.abs(spec) ** 2
+        if db:
+            out = 10 * np.log10(out)
+        out = out.set_units(spec.attrs.data_units**2).update(
+            attrs={"data_type": "Power Spectrum"}
+        )
+
+    elif kind.upper() == "PSD":
+        # [Note dt * nfft = 1/df, where df is the frequency bin width]
+        # (units = strain**2 / Hz, [assuming data is strain])
+        fsamp = patch.get_coord("time").step / np.timedelta64(1, "s")
+        out = np.abs(spec) ** 2 / (n * fsamp)
+        if db:
+            out = 10 * np.log10(out)
+        out = out.set_units(spec.attrs.data_units**2 / seconds).update(
+            attrs={"data_type": "Power Spectral Density"}
+        )
+
+    else:
+        raise ValueError("ERROR: Unknown option: kind=", kind)
+
+    return out
