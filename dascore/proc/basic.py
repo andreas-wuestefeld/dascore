@@ -819,3 +819,79 @@ def full(patch, fill_value):
     """
     array = np.full(patch.data.shape, fill_value)
     return patch.update(data=array)
+
+
+@dc.patch_function(
+    required_dims=(
+        "time",
+        "distance",
+    )
+)
+def demedian(patch, dim: str = "time"):
+    """
+    Remove the median along a given dimension of a DASCore patch.
+
+    Parameters
+    ----------
+    patch : dascore.Patch
+        Input patch.
+    dim : str
+        Dimension name (e.g., "time", "distance").
+
+    Returns
+    -------
+    dascore.Patch
+        New patch with median removed along the specified dimension.
+    """
+    if dim not in patch.dims:
+        raise ValueError(f"Dimension '{dim}' not found in patch.dims={patch.dims}")
+
+    axis = patch.dims.index(dim)
+
+    data = np.asarray(patch.data)
+
+    # Compute median along axis, keep dims for broadcasting
+    med = np.median(data, axis=axis, keepdims=True)
+
+    new_data = data - med
+
+    # Return a new patch with updated data
+    return patch.new(data=new_data)
+
+
+@dc.patch_function(
+    required_dims=(
+        "time",
+        "distance",
+    )
+)
+def demean(patch, dim: str = "time"):
+    """
+    Remove the mean along a given dimension of a DASCore patch.
+
+    Parameters
+    ----------
+    patch : dascore.Patch
+        Input patch.
+    dim : str
+        Dimension name (e.g., "time", "distance").
+
+    Returns
+    -------
+    dascore.Patch
+        New patch with mean removed along the specified dimension.
+    """
+    if dim not in patch.dims:
+        raise ValueError(f"Dimension '{dim}' not found in patch.dims={patch.dims}")
+
+    axis = patch.dims.index(dim)
+
+    data = np.asarray(patch.data)
+
+    # Compute median along axis, keep dims for broadcasting
+    med = np.mean(data, axis=axis, keepdims=True)
+
+    new_data = data - med
+
+    # Return a new patch with updated data
+    return patch.new(data=new_data)
