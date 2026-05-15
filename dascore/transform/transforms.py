@@ -5,12 +5,12 @@ from __future__ import annotations
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
 
-import dascore as dc
 from dascore.constants import PatchType
+from dascore.utils.patch import patch_function
 from dascore.utils.time import to_float
 
 
-@dc.patch_function()
+@patch_function()
 def stalta(
     patch: PatchType,
     short: float | None = None,
@@ -58,7 +58,7 @@ def stalta(
     )
 
 
-@dc.patch_function(required_dims=("time",), history="full")
+@patch_function(required_dims=("time",), history="full")
 def fbe_rms(
     patch: PatchType,
     corners: tuple[float, float] = (None, None),
@@ -115,7 +115,7 @@ def fbe_rms(
     return fbe
 
 
-@dc.patch_function(required_dims=("time",), history="full")
+@patch_function(required_dims=("time",), history="full")
 def rolling_mean_frequency(
     patch: PatchType,
     winlen: float,
@@ -228,7 +228,7 @@ def rolling_mean_frequency(
     )
 
 
-@dc.patch_function()
+@patch_function()
 def kurtosis(
     patch: PatchType,
     winlen: float,
@@ -389,7 +389,7 @@ def kurtosis(
 
 
 # %%
-@dc.patch_function()
+@patch_function()
 def aic(
     patch: PatchType,
     dim: str = "time",

@@ -485,6 +485,7 @@ class Patch(NamespaceOwner):
     istft = transform.istft
     integrate = transform.integrate
     spectrogram = transform.spectrogram
+    spectra = transform.spectra
     velocity_to_strain_rate = transform.velocity_to_strain_rate
     velocity_to_strain_rate_edgeless = transform.velocity_to_strain_rate_edgeless
     dispersion_phase_shift = transform.dispersion_phase_shift
@@ -492,6 +493,11 @@ class Patch(NamespaceOwner):
     hilbert = transform.hilbert
     envelope = transform.envelope
     phase_weighted_stack = transform.phase_weighted_stack
+    kurtosis = transform.kurtosis
+    stalta = transform.stalta
+    rolling_mean_frequency = transform.rolling_mean_frequency
+    fbe_rms = transform.fbe_rms
+    aic = transform.aic
 
     # --- Method Namespaces
     # Note: these can't be cached_property (from functools) or references
