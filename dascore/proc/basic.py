@@ -821,7 +821,7 @@ def full(patch, fill_value):
     return patch.update(data=array)
 
 
-@dc.patch_function(
+@patch_function(
     required_dims=(
         "time",
         "distance",
@@ -859,7 +859,7 @@ def demedian(patch, dim: str = "time"):
     return patch.new(data=new_data)
 
 
-@dc.patch_function(
+@patch_function(
     required_dims=(
         "time",
         "distance",
